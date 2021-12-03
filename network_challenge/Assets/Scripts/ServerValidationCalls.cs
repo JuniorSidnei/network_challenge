@@ -11,50 +11,70 @@ public class ServerValidationCalls : MonoBehaviour {
     private void Awake() {
 
         m_clientsInfos = new List<ClientMessages> {
-            new ClientMessages("Brazil", DateTime.Now, "Move"), 
-            new ClientMessages("Brazil", DateTime.Now, "Move"),
-            new ClientMessages("Brazil", DateTime.Now, "Move"),
-            new ClientMessages("Brazil", DateTime.Now, "Move"),
-            new ClientMessages("Brazil", DateTime.Now, "Move"),
-            new ClientMessages("Brazil", DateTime.Now, "Move"),
-            new ClientMessages("Brazil", DateTime.Now, "Move"),
+            new ClientMessages("Bob", DateTime.Now.Millisecond, "Move"), 
+            new ClientMessages("Bob",  DateTime.Now.Millisecond + 0.1f, "Move"),
+            new ClientMessages("Luiz", DateTime.Now.Millisecond, "Move"),
+            new ClientMessages("Fábio", DateTime.Now.Millisecond, "Move"),
+            new ClientMessages("Pedro", DateTime.Now.Millisecond, "Move"),
+            new ClientMessages("Maicon", DateTime.Now.Millisecond, "Move"),
+            new ClientMessages("Leandro", DateTime.Now.Millisecond, "Move"),
         };
         
         
-        var listToProcess = EnqueueFunctionCalls(m_clientsInfos);
-        foreach (var user in listToProcess)
-        {
-            Debug.Log("functions to process, origin: " + user.UserId + ", function: " + user.FunctionName);    
+        var messagesValidated = ValidateMessagesDuplicated(m_clientsInfos);
+        var queue = new Queue<ClientMessages>();
+        foreach (var message in messagesValidated) {
+            queue.Enqueue(message);
+            Debug.Log("functions to process, origin: " + message.UserId + ", function: " + message.FunctionName);    
         }
         
     }
 
-    private Queue<ClientMessages> EnqueueFunctionCalls(List<ClientMessages> clientMessage) {
-        var listId = new List<string>();
-        var listFunction = new List<string>();
-        var updatedCollection = new List<ClientMessages>();
+    private List<ClientMessages> ValidateMessagesDuplicated(List<ClientMessages> clientMessages) {
+        var enqueuedMessages = new List<ClientMessages>();
 
-        
-        foreach (var message in clientMessage) {
-            if (listId.Contains(message.UserId)) {
-                var idx = GetAllIndexWithKey(listId, message.UserId);
-                if (!IsDuplicate(listFunction, idx, message.FunctionName)) {
-                    continue;
+        foreach (var message in clientMessages) {
+            var isDuplicate = false;
+            
+            foreach (var enqueuedMessage in enqueuedMessages) {
+                if (IsMessageDuplicated(message, enqueuedMessage)) {
+                    isDuplicate = true;
+                    break;
                 }
             }
+            if (!isDuplicate) {
+                enqueuedMessages.Add(message);
+            }
+        }
+        return enqueuedMessages;
         
-            updatedCollection.Add(message);
-            listId.Add(message.UserId);
-            listFunction.Add(message.FunctionName);
-        }
-
-        var queue = new Queue<ClientMessages>();
-        foreach (var user in updatedCollection) {
-            queue.Enqueue(user);
-        }
-        return queue;
+        // foreach (var message in clientMessage) {
+        //     if (listId.Contains(message.UserId)) {
+        //         var idx = GetAllIndexWithKey(listId, message.UserId);
+        //         if (!IsDuplicate(listFunction, idx, message.FunctionName)) {
+        //             continue;
+        //         }
+        //     }
+        //
+        //     validatedMessages.Add(message);
+        //     listId.Add(message.UserId);
+        //     listFunction.Add(message.FunctionName);
+        // }
+        //
+        // var queue = new Queue<ClientMessages>();
+        // foreach (var user in validatedMessages) {
+        //     queue.Enqueue(user);
+        // }
+        // return queue;
     }
 
+    private bool IsMessageDuplicated(ClientMessages message, ClientMessages enqueuedMessage)  {
+        if (message.TimeStamp > enqueuedMessage.TimeStamp) return false;
+        if (message.UserId != enqueuedMessage.UserId) return false;
+        
+        return message.FunctionName == enqueuedMessage.FunctionName;
+    }
+    
     private List<int> GetAllIndexWithKey(List<string> listOrigin, string key) {
         var allIdx = new List<int>();
         

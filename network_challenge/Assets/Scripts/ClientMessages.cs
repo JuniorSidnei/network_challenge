@@ -6,10 +6,10 @@ using UnityEngine;
 [System.Serializable]
 public class ClientMessages {
     public string UserId;
-    public DateTime TimeStamp;
+    public float TimeStamp;
     public string FunctionName;
 
-    public ClientMessages(string userId, DateTime timeStamp, string functionName) {
+    public ClientMessages(string userId, float timeStamp, string functionName) {
         UserId = userId;
         TimeStamp = timeStamp;
         FunctionName = functionName;
