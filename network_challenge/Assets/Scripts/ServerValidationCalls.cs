@@ -5,53 +5,50 @@ using System.Linq;
 using UnityEngine;
 
 public class ServerValidationCalls : MonoBehaviour {
-    private List<ClientFunction> m_clientsInfos;
+    private List<ClientMessages> m_clientsInfos;
     private Queue m_queueCalls;
 
     private void Awake() {
 
-        m_clientsInfos = new List<ClientFunction> {
-            new ClientFunction("Brazil", DateTime.Now, "Move"), 
-            new ClientFunction("Brazil", DateTime.Now, "Move"),
-            new ClientFunction("Brazil", DateTime.Now, "Move"),
-            new ClientFunction("Brazil", DateTime.Now, "Move"),
-            new ClientFunction("Brazil", DateTime.Now, "Move"),
-            new ClientFunction("Brazil", DateTime.Now, "Move"),
-            new ClientFunction("Brazil", DateTime.Now, "Move"),
+        m_clientsInfos = new List<ClientMessages> {
+            new ClientMessages("Brazil", DateTime.Now, "Move"), 
+            new ClientMessages("Brazil", DateTime.Now, "Move"),
+            new ClientMessages("Brazil", DateTime.Now, "Move"),
+            new ClientMessages("Brazil", DateTime.Now, "Move"),
+            new ClientMessages("Brazil", DateTime.Now, "Move"),
+            new ClientMessages("Brazil", DateTime.Now, "Move"),
+            new ClientMessages("Brazil", DateTime.Now, "Move"),
         };
         
         
         var listToProcess = EnqueueFunctionCalls(m_clientsInfos);
         foreach (var user in listToProcess)
         {
-            Debug.Log("functions to process, origin: " + user.UserOrigin + ", function: " + user.FunctionName);    
+            Debug.Log("functions to process, origin: " + user.UserId + ", function: " + user.FunctionName);    
         }
         
     }
 
-    private Queue<ClientFunction> EnqueueFunctionCalls(List<ClientFunction> usersInfo) {
-        var listOrigin = new List<string>();
+    private Queue<ClientMessages> EnqueueFunctionCalls(List<ClientMessages> clientMessage) {
+        var listId = new List<string>();
         var listFunction = new List<string>();
-        var updatedCollection = new List<ClientFunction>();
+        var updatedCollection = new List<ClientMessages>();
 
         
-        foreach (var user in usersInfo) {
-            if (listOrigin.Contains(user.UserOrigin)) {
-                var idx = GetAllIndexWithKey(listOrigin, user.UserOrigin);
-                if (user.UserOrigin == "Portugal") {
-                    var bla = 0;
-                }
-                if (!IsFunctionValid(listFunction, idx, user.FunctionName)) {
+        foreach (var message in clientMessage) {
+            if (listId.Contains(message.UserId)) {
+                var idx = GetAllIndexWithKey(listId, message.UserId);
+                if (!IsDuplicate(listFunction, idx, message.FunctionName)) {
                     continue;
                 }
             }
         
-            updatedCollection.Add(user);
-            listOrigin.Add(user.UserOrigin);
-            listFunction.Add(user.FunctionName);
+            updatedCollection.Add(message);
+            listId.Add(message.UserId);
+            listFunction.Add(message.FunctionName);
         }
 
-        var queue = new Queue<ClientFunction>();
+        var queue = new Queue<ClientMessages>();
         foreach (var user in updatedCollection) {
             queue.Enqueue(user);
         }
@@ -70,7 +67,7 @@ public class ServerValidationCalls : MonoBehaviour {
         return allIdx;
     }
 
-    private bool IsFunctionValid(List<string> listFunction, List<int> idx, string functionName)
+    private bool IsDuplicate(List<string> listFunction, List<int> idx, string functionName)
     {
         foreach (var userFunction in listFunction)  {
             foreach (var t1 in idx)  {
